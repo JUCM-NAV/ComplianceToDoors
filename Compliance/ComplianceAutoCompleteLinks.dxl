@@ -1,0 +1,9 @@
+// ComplianceAutoCompleteLinks.dxl
+
+/*************************************************************************************** 
+// Author Gunter Mussbacher, May2005
+*/
+#include "addins/Compliance/lib/ComplianceUtilities.dxl"
+pragma runLim,0
+
+completeLinks()

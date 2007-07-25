@@ -1,0 +1,9 @@
+/*************************************************************************************** 
+// Author Sepideh Ghanavati, April-May2007
+// - Based on initial version by Bo Jiang
+*/
+#include "addins/Compliance/lib/ComplianceGlobal.dxl"
+#include "addins/Compliance/lib/ComplianceModuleUtilities.dxl"
+#include "addins/Compliance/lib/ComplianceInitExit.dxl"
+#include "addins/Compliance/lib/ComplianceLinks.dxl"
+#include "addins/Compliance/lib/ComplianceCompleteLinks.dxl"
