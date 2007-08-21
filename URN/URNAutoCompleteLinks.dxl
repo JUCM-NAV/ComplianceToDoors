@@ -1,0 +1,9 @@
+// URNAutoCompleteLinks.dxl
+
+/*************************************************************************************** 
+// Author Gunter Mussbacher, May2005
+*/
+#include "addins/URN/lib/URNUtilities.dxl"
+pragma runLim,0
+
+completeLinks()
