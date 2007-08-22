@@ -1,0 +1,106 @@
+// SetupCompliance.dxl
+
+/*************************************************************************************** 
+// Author Sepideh Ghanavati, July-August 2007
+*/
+/***************************************************************************************
+// Setup Legislation Formal and Link Modules
+*/
+
+bool setupLegislation() {
+
+	Module m
+	string buttons[] = { "Ok" } 
+	
+	Project p = current Project
+	current = folder "/" name p "/"
+	
+	if ( folder legFolderName ) {
+		current = folder legFolderName
+	
+		if( ! exists module fileNameLegClause ) {
+			m = create (fileNameLegClause,"Legislation Clauses","",1,false)
+			close(m,true)
+			print ("Created: " fileNameLegClause " (formal module)\n")
+		} else {
+			print ("Skipped: " fileNameLegClause " (formal module) already exists\n")
+		} 
+		if( ! exists module fileNameLegDef ) {
+			m = create (fileNameLegDef,"Legislation Definitions","",1,false)
+			close(m,true)
+			print ("Created: " fileNameLegDef " (formal module)\n")
+		} else {
+			print ("Skipped: " fileNameLegDef " (formal module) already exists\n")
+		}
+		if( ! exists module fileNameLegSources ) {
+			m = create (fileNameLegSources,"Source Link Module",manyToMany,false)
+			close(m,true)
+			print ("Created: " fileNameLegSources " (link module)\n")
+		} else {
+			print ("Skipped: " fileNameLegSources " (link module) already exists\n")
+		}
+	} else {
+		messageBox("Legislation folder '" legFolderName "' does not exist!\n", buttons, msgWarning)
+		return false
+	}
+	return true
+}
+
+/***************************************************************************************
+// Author Sepideh Ghanavati, July 2007
+*/
+/***************************************************************************************
+// Setup Organization Formal and Link Modules
+*/
+bool setupOrganization() {
+
+	Module m
+	string buttons[] = { "Ok" } 
+	
+	Project p = current Project
+	current = folder "/" name p "/"
+	
+	if ( folder orgFolderName ) {	
+		current = folder orgFolderName "/"
+	
+		if( ! exists module fileNameOrgDocuments ) {
+			m = create (fileNameOrgDocuments,"Organization Documents","",1,false)
+			close(m,true)
+			print ("Created: " fileNameOrgDocuments " (formal module)\n")
+		} else {
+			print ("Skipped: " fileNameOrgDocuments " (formal module) already exists\n")
+		}
+		if ( ! exists module fileNameOrgSources ) {
+			m = create (fileNameOrgSources,"Organization Source Link Module",manyToMany,false)
+			close(m,true)
+			print ("Created: " fileNameOrgSources " (link module)\n")
+		} else {
+			print ("Skipped: " fileNameOrgSources " (link module) already exists\n")
+		}
+		if ( ! exists module fileNameOrgTraces ) {
+			m = create (fileNameOrgTraces,"Traceability Link Module",manyToMany,false)
+			close(m,true)
+			print ("Created: " fileNameOrgTraces " (link module)\n")
+		} else {
+			print ("Skipped: " fileNameOrgTraces " (link module) already exists\n")
+		}
+		if ( ! exists module fileNameOrgResps ) {
+			m = create (fileNameOrgResps,"Responsibility Link Module",manyToMany,false)
+			close(m,true)
+			print ("Created: " fileNameOrgResps " (link module)\n")
+		} else {
+			print ("Skipped: " fileNameOrgResps " (link module) already exists\n")
+		}
+		if ( ! exists module fileNameOrgComplies ) {
+			m = create (fileNameOrgComplies,"Compliance Link Module",manyToMany,false)
+			close(m,true)
+			print ("Created: " fileNameOrgComplies " (formal module)\n")
+		} else {
+			print ("Skipped: " fileNameOrgComplies " (formal module) already exists\n")
+		}
+	} else {
+		messageBox("Organization folder '" orgFolderName "' does not exist!\n", buttons, msgWarning)
+		return false
+	}
+	return true
+}

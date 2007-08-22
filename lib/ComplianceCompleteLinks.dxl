@@ -1,0 +1,93 @@
+/*************************************************************************************** 
+// Author Sepideh Ghanavati, April-May 2007
+// - Based on initial version by Bo Jiang, Gunter Mussbacher
+// - provides services for initialization and exit of applications
+*/
+
+/*************************************************************************************** 
+Author Sepideh Ghanavati, April-May 2007
+// - prepares DOORS for auto-completion of links
+//	- makes sure the program is started from a URN module
+//	- makes sure that the selected folder has not been chosen by accident (sets global variable UCMFolder)
+//	- opens all external modules for editing/reading (sets global variables
+//	  externalModule, externalLinkModule) and checks if external attribute exists
+//	- makes sure that all modules are closed
+//	- opens all formal modules for editing (sets global variables deviceModule, componentModule, 
+//	  responsibilityModule, mapModule, scenarioModule)
+//	- opens all link modules for editing (sets global variables hostsLinkModule, requestsLinkModule,
+//	  referencesLinkModule, refinesLinkModule, boundtoLinkModule, tracedByLinkModule, rationaleLinkModule, urnLinkModule)
+// - halts if an error occurs or the user chooses "Quit", otherwise returns true
+*/
+//TODO Modified autocomplete links to include GRL diagrams and links
+bool beginCompleteLinks() {
+	int initOK = 1
+	string buttons1[] = { "Complete", "Quit" }, buttons3[] = { "Ok" } 
+
+	initOK = messageBox( "Do you want to automatically complete links\nbetween the organization and the legislation?\n", buttons1, msgWarning )
+	if( initOK == 1 )
+		halt
+
+	debug("init OK\n",3)
+	// open all organization UCM modules for editing
+	if( !( openOrgModules(orgFolderName) ) ) {
+		messageBox( "One or more organization UCM modules could not be opened for editing.\nAuto Complete Links cannot proceed.\n", buttons3, msgError )
+		halt
+	}
+	debug("opened all organization UCM modules for editing\n", 3)
+
+	// open all required organization URN link modules for editing
+	if( !( checkCreateOrgLinkModules(orgFolderName) ) ) {
+		messageBox( "One or more organization URN link modules could not be opened for editing.\nAuto Complete Links cannot proceed.\n", buttons3, msgError )
+		halt
+	}	
+	debug("opened all required legislation URN link modules for editing\n", 3)
+	// open all legislation UCM modules for editing
+	if( !( openLegModules(legFolderName) ) ) {
+		messageBox( "One or more legislation UCM modules could not be opened for editing.\nAuto Complete Links cannot proceed.\n", buttons3, msgError )
+		halt
+	}
+	debug("opened all legislation UCM modules for editing\n", 3)
+
+	// open all required legislation URN link modules for editing
+	if( !( checkCreateLegLinkModules(legFolderName) ) ) {
+		messageBox( "One or more legislation URN link modules could not be opened for editing.\nAuto Complete Links cannot proceed.\n", buttons3, msgError )
+		halt
+	}	
+	debug("opened all required legislation URN link modules for editing\n", 3)
+	return true
+}
+
+/*************************************************************************************** 
+Author Sepideh Ghanavati, April-May 2007
+// - saves and closes all files
+// - always returns true
+*/
+bool endCompleteLinks() {
+	string buttons[] = { "Ok" } 
+
+	bool saved = saveCloseFinal();
+	debug("saved and closed\n", 3)
+	messageBox( "Automatic link generation complete!", buttons, msgWarning)
+
+	return true
+}
+
+/*************************************************************************************** 
+// Author Sepideh Ghanavati, April-May 2007
+// - completes all external links based on manually created external links
+// - only called from within a module
+// - halts if initialization checks (beginCompleteLinks) fail, otherwise always returns true
+*/
+bool completeLinks() {
+	Project p = current Project
+	current = folder "/" name p "/"
+	string legSources = name p "/" legFolderName "/" fileNameLegSources ""
+
+	beginCompleteLinks()
+	completeTransitiveLinks(orgIntentionalElementModule, fileNameOrgTraces, legSources, fileNameOrgComplies)
+	completeTransitiveLinks(orgActorModule, fileNameOrgTraces, legSources, fileNameOrgComplies)
+	completeTransitiveLinks(orgComponentModule, fileNameOrgUrnLinks, fileNameOrgTraces, fileNameOrgResps)
+	completeTransitiveLinks(orgResponsibilityModule, fileNameOrgUrnLinks, fileNameOrgTraces, fileNameOrgResps)
+	endCompleteLinks()
+	return true
+}

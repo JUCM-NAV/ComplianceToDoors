@@ -1,0 +1,55 @@
+/*************************************************************************************** 
+// Author Sepideh Ghanavati, April-August 2007
+// - Based on initial version by Bo Jiang
+
+*/
+
+//-- global constants 
+//***********************************************
+//** PLEASE CONFIGURE ACCORDING TO YOUR SET UP **
+//***********************************************
+const string orgFolderName = "Organization"
+const string legFolderName = "Legislation"
+
+const string fileNameLegSources = "Sources"
+const string fileNameLegDef = "Definitions"
+const string fileNameLegClause = "Clauses"
+const string fileNameLegActors = "Actors"
+const string fileNameLegIntentionalElements = "Intentional Elements"
+const string fileNameLegUrnLinks = "Urn Links"
+
+const string fileNameOrgIntentionalElements = "Intentional Elements"
+const string fileNameOrgActors = "Actors"
+const string fileNameOrgComponents = "Components"
+const string fileNameOrgResponsibilities = "Responsibilities"
+const string fileNameOrgComplies = "Complies"
+const string fileNameOrgResps = "Resps"
+const string fileNameOrgTraces = "Traces"
+const string fileNameOrgUrnLinks = "Urn Links"
+const string fileNameOrgDocuments = "Documents"
+const string fileNameOrgSources = "Sources"
+//***********************************
+//** END OF CONFIGURABLE CONSTANTS **
+//***********************************
+
+// all UCM-URN formal modules
+Module orgActorModule
+Module orgIntentionalElementModule
+Module orgComponentModule
+Module orgResponsibilityModule
+Module orgDocumentsModule
+
+// all UCM link modules
+Module orgTracesLinkModule
+Module orgRespLinkModule
+Module orgCompliesLinkModule
+Module orgUrnLinksModule
+Module orgSourcesLinksModule
+
+// all external modules
+Module legDefModule
+Module legClauseModule
+Module legIntetionalElementModule
+Module legActorsModule
+
+Module legSourcesLinkModule

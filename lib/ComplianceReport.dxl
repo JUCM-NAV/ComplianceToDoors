@@ -1,0 +1,209 @@
+/*************************************************************************************** 
+// Author Sepideh Ghanavati, April-August 2007
+// - generates a change report for UCM objects with suspect links
+*/
+
+/*************************************************************************************** 
+// Author Sepideh Ghanavati, July-August 2007
+// - prepares DOORS for the generation of the change report
+//	- makes sure the program is started from a UCM module
+//	- makes sure that the selected folder has not been chosen by accident (sets global variable UCMFolder)
+//	- opens all external modules for editing/reading (sets global variables
+//	  externalModule, externalLinkModule)
+//	- makes sure that all modules are closed
+//	- opens all formal modules for editing (sets global variables deviceModule, componentModule, 
+//	  responsibilityModule, mapModule, scenarioModule)
+// - halts if an error occurs or the user chooses "Quit", otherwise returns true
+*/
+bool beginGenerateChangeReport() {
+	int initOK = 1
+	string buttons1[] = { "Report", "Quit" }, buttons3[] = { "Ok" } 
+
+	// make sure the the program was started from a UCM module in the correct folder
+	initOK = messageBox( "Do you want to report changes in compliance modules?\n", buttons1, msgWarning )
+	if( initOK == 1 )
+		halt
+
+	debug("init OK\n",3)
+	// open all organization UCM modules for editing
+	if( !( openOrgModules(orgFolderName) ) ) {
+		messageBox( "One or more organization UCM modules could not be opened for editing.\nAuto Complete Links cannot proceed.\n", buttons3, msgError )
+		halt
+	}
+	debug("opened all organization UCM modules for editing\n", 3)
+
+	// open all required organization URN link modules for editing
+	if( !( checkCreateOrgLinkModules(orgFolderName) ) ) {
+		messageBox( "One or more organization URN link modules could not be opened for editing.\nAuto Complete Links cannot proceed.\n", buttons3, msgError )
+		halt
+	}	
+	debug("opened all required legislation URN link modules for editing\n", 3)
+	// open all legislation UCM modules for editing
+	if( !( openLegModules(legFolderName) ) ) {
+		messageBox( "One or more legislation UCM modules could not be opened for editing.\nAuto Complete Links cannot proceed.\n", buttons3, msgError )
+		halt
+	}
+	debug("opened all legislation UCM modules for editing\n", 3)
+
+	// open all required legislation URN link modules for editing
+	if( !( checkCreateLegLinkModules(legFolderName) ) ) {
+		messageBox( "One or more legislation URN link modules could not be opened for editing.\nAuto Complete Links cannot proceed.\n", buttons3, msgError )
+		halt
+	}	
+	debug("opened all required legislation URN link modules for editing\n", 3)
+	return true
+
+}
+
+/*************************************************************************************** 
+// Author Sepideh Ghanavati, April-August 2007
+// - saves and closes all files
+// - always returns true
+*/
+bool endGenerateChangeReport() {
+	string buttons[] = { "Ok" } 
+
+	bool saved = saveCloseFinal();
+	debug("saved and closed\n", 3)
+	messageBox( "Report Change has finished!", buttons, msgWarning)
+
+	return true
+}
+
+/*************************************************************************************** 
+// Author Sepideh Ghanavati, April-August 2007
+// - finds the last date the given link was cleared
+// - if linkDirection equals "IN", only the backwards direction of the link is considered
+// - if linkDirection equals "OUT", only the forwards direction of the link is considered
+// - returns the last date the link was cleared or "1 Jan 1970" if link was never cleared
+*/
+Date findClearDate( Link myLink, string linkDirection ) {
+	Date dateCleared = "1 Jan 1970"
+	//
+	//Date d
+	
+	//if( linkDirection == "IN" )
+	//	d = myLink.S_ATTR_SUSPICION_CLEARED_BACKWARDS
+	//if( linkDirection == "OUT" )
+	//	d = myLink.S_ATTR_SUSPICION_CLEARED_FORWARDS
+	//if( !( null d ) ) {
+	//	dateCleared = d
+	//	debug("date cleared: " dateCleared "\n", 3)
+	//}
+	//
+	return dateCleared
+}
+
+/*************************************************************************************** 
+// Author Sepideh Ghanavati, April-August 2007
+// - compiles the changes from a given cutoffDate using the history of a given object
+// - only changes of type modifyObject are compiled
+// - returns changes or "" if there are no changes (note that rich text is used for changes)
+*/
+string compileChanges( Date cutoffDate, Object myObject ) {
+	History currentHistory
+	string changes = "", oldVersion, newVersion
+
+	for currentHistory in myObject do {
+		if( currentHistory.type == modifyObject && cutoffDate <= currentHistory.date ) {
+			oldVersion = currentHistory.oldValue
+			newVersion = currentHistory.newValue
+			changes = changes "on " currentHistory.date " for attribute '" currentHistory.attrName "'\n" oldVersion "\n--->\n" newVersion "\n\n"
+		}
+	}
+	return changes
+}
+
+/*************************************************************************************** 
+// Author Sepideh Ghanavati, April-August 2007
+// - generates change report for UCM objects in myModule with suspect links by compiling change information and 
+//   assigning it to the "Suspect In Links" and "Suspect Out Links" attributes
+// - assumptions for this function
+//	- all external modules with links to myModule are open (otherwise suspect links will not be detected)
+//	- internal links do not cause suspect links for UCM objects because UCM modules are not supposed to be changed by a DOORS user
+// - always returns true
+*/
+bool generateModuleChangeReport( Module myModule ) {
+	Object currentObject, targetObject, sourceObject
+	Link currentLink
+	Date cutoffDate
+	string changes = "", allChanges = ""
+	int numberOutLinks = 0
+	int numberInLinks = 0
+
+	current = myModule
+	load view( "Standard view" )
+	for currentObject in myModule do {
+		// skips need to be created and deleted each time, otherwise loop with skip does not work correctly
+		Skip suspectOutLinks = create
+		Skip suspectInLinks = create
+		numberOutLinks = fnDetermineSuspectOutLinks( currentObject, suspectOutLinks )
+		numberInLinks = fnDetermineSuspectInLinks( currentObject, suspectInLinks )
+		if( numberOutLinks > 0 ) {
+			for currentLink in suspectOutLinks do {
+				targetObject = target currentLink
+				// find date suspicion was cleared for link to targetObject from currentObject
+				cutoffDate = findClearDate( currentLink, "OUT" )
+				// compile history data from target object after cutoffDate
+				changes = "Object " targetObject."Absolute Number" " in '" fullName( module( targetObject ) ) "' changed.\n"
+				changes = changes compileChanges( cutoffDate, targetObject )
+				allChanges = allChanges changes
+				debug("compiled changes for " currentObject."ID" " (" targetObject."Absolute Number" " in " fullName( module( targetObject ) ) ")\n", 3)
+			}
+		}
+		if( allChanges == "" )
+			allChanges = "No content"
+		currentObject."Suspect Out Links" = richText allChanges
+		allChanges = ""
+		if( numberInLinks > 0 ) {
+			for currentLink in suspectInLinks do {
+				sourceObject = source currentLink
+				// find date suspicion was cleared for link from sourceObject to currentObject
+				cutoffDate = findClearDate( currentLink, "IN" )
+				// compile history data from source object after cutoffDate
+				changes = "Object " sourceObject."Absolute Number" " in '" fullName( module( sourceObject ) ) "' changed.\n"
+				changes = changes compileChanges( cutoffDate, sourceObject )
+				allChanges = allChanges changes
+				debug("compiled changes for " currentObject."ID" " (" sourceObject."Absolute Number" " in " fullName( module( sourceObject ) ) ")\n", 3)
+			}
+		}
+		if( allChanges == "" )
+			allChanges = "No content"
+		currentObject."Suspect In Links" = richText allChanges
+		allChanges = ""
+		// skips need to be created and deleted each time, otherwise loop with skip does not work correctly
+		delete suspectOutLinks
+		delete suspectInLinks
+	}
+	debug("reported changes for module " myModule."Name" "\n", 3)
+	return true
+}
+
+/*************************************************************************************** 
+// Author Sepideh Ghanavati, April-August 2007
+// - generates change report for all UCM modules
+// - only called from within a module
+// - assumptions for this function
+//	- all external modules with links to UCM modules are open (otherwise suspect links will not be detected)
+//	- internal links do not cause suspect links for UCM objects because UCM modules are not supposed to be changed by a DOORS user
+// - halts if initialization checks (beginGenerateChangeReport) fail, otherwise always returns true
+*/
+bool complianceGenerateChangeReport() {
+	Project p = current Project
+	current = folder "/" name p "/"
+
+	beginGenerateChangeReport()
+	generateModuleChangeReport( orgActorModule )
+	generateModuleChangeReport( orgIntentionalElementModule )
+	generateModuleChangeReport( orgComponentModule )
+	generateModuleChangeReport( orgResponsibilityModule )
+	generateModuleChangeReport( orgDocumentsModule )
+
+	generateModuleChangeReport( legDefModule )
+	generateModuleChangeReport( legClauseModule )
+	generateModuleChangeReport( legIntetionalElementModule )
+	generateModuleChangeReport( legActorsModule )
+
+	endGenerateChangeReport()
+	return true
+}

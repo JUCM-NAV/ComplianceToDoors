@@ -1,0 +1,84 @@
+/*************************************************************************************** 
+// Author Sepideh Ghanavati, April-May 2007
+// - Based on initial version by Bo Jiang
+// - provides services for a module
+*/
+
+//Global variable for the debug_level
+//From 0 (no debug) to 5 (complete debug)
+int debug_level = 5
+
+/***************************************************************************************
+// Author Sepideh Ghanavati, April-May 2007
+// - Print the debug string if the debug level is less of equal to the global debug_level
+*/
+void debug( string description, int level ) {
+	if (level <= debug_level){
+		print ("debug: " description)
+	}
+}
+
+/*************************************************************************************** 
+// Author Sepideh Ghanavati, April-May 2007
+// - finds the object with a given ID in the given module
+// - returns found object or null if not found
+*/
+Object findObject( string ID, Module theModule ) {
+	Object currentObject, foundObject = null
+
+	for currentObject in theModule do {
+		if ( currentObject."ID" "" == ID ) {
+			foundObject = currentObject
+			break
+		}
+	}
+	return foundObject
+}
+
+/*************************************************************************************** 
+// Author Sepideh Ghanavati, April-May 2007
+// - finds the given object's ancestor with the given ancestorID
+// - returns ancestor object or null if not found
+*/
+Object findAncestor( string ancestorID, Object theObject ) {
+	Object ancestorObject = null
+
+	if ( theObject."ID" "" == ancestorID )
+		ancestorObject = theObject
+	else
+		ancestorObject = findAncestor( ancestorID, parent( theObject ) )
+	return ancestorObject
+}
+
+/*************************************************************************************** 
+// Author Sepideh Ghanavati, April-May 2007
+// - finds the given object's ancestor of the given type
+// - returns ancestor object  or null if not found
+*/
+Object findAncestorOfType( string ancestorType, Object theObject ) {
+	Object ancestorObject = null
+
+	if ( theObject."Type" "" == ancestorType )
+		ancestorObject = theObject
+	else
+		ancestorObject = findAncestorOfType( ancestorType, parent( theObject ) )
+	return ancestorObject
+}
+
+/*************************************************************************************** 
+// Author Sepideh Ghanavati, April-May 2007
+// - creates a new object at the end of the given module
+// - returns new object
+*/
+Object createNewObject( Module theModule ) {
+	Object currentObject
+
+	current = theModule
+	currentObject = last theModule
+	if( currentObject == null )
+		currentObject = create theModule
+	else {
+		currentObject = create currentObject
+	}
+	return currentObject
+}

@@ -1,0 +1,56 @@
+// @@@ dynamic stubs may have to be dealt with differently - which map to link to for a specific use case?
+
+/*************************************************************************************** 
+// Author Sepideh Ghanavati, April-August 2007
+// - Based on initial version by Bo Jiang
+// - creates internal and external links for all UCM modules
+*/
+
+/*************************************************************************************** 
+// Author Sepideh Ghanavati, April-August 2007
+// - checks if the sourceObject is already linked to the targetObject in theLinkModule
+// - returns true if it is already linked, otherwise false
+*/
+bool alreadyLinked( Object sourceObject, Object targetObject, string theLinkModuleName ) {
+	Link l
+
+	for l in sourceObject->theLinkModuleName do {
+		if( target l == targetObject ) {
+			return true
+		}
+	}
+	return false
+}
+
+bool completeTransitiveLinks ( Module elementModule, string link1, string link2, string transitiveLink ) {
+	Object currentObject
+	Object targetObject_L1, sourceObject_L1
+	Object targetObject_L2, sourceObject_L2
+	Link l, l2, newLink
+
+	Project p = current Project;
+	current = folder ("/" name p "/" orgFolderName "/")
+	
+	for currentObject in elementModule do {
+		for l in (currentObject)->link1 do {
+			targetObject_L1 = target l
+			sourceObject_L1 = source l
+			if(!null(targetObject_L1)) {
+				for l2 in (targetObject_L1)->link2 do {
+					sourceObject_L2 = source l2
+					targetObject_L2 = target l2
+					if(sourceObject_L2 == targetObject_L1) {
+						if( !( alreadyLinked( sourceObject_L1, targetObject_L2, transitiveLink ) ) ) {
+							newLink = sourceObject_L1->transitiveLink->targetObject_L2
+							Module sourceM = module(sourceObject_L1)
+							Module targetM = module(targetObject_L2)
+							debug("created " transitiveLink " link from " sourceM."Name" "-" number(sourceObject_L1) " to " targetM."Name" "-" number(targetObject_L2) "\n", 3)
+						}
+					}
+				}
+			}
+		}
+	}
+	return true
+}
+

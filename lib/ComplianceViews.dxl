@@ -1,0 +1,68 @@
+// @@@ investigate width of columns
+
+/*************************************************************************************** 
+// Author Sepideh Ghanavati, July-August 2007
+// - Based on initial version by Bo Jiang
+// - creates views for all UCM modules
+*/
+
+/*************************************************************************************** 
+// Author Sepideh Ghanavati, July-August 2007
+// - creates common views for deleted and new objects used in each module
+// - inserts column after the last column of the current view
+// - also creates common view for suspect links (keeps only the first three columns)
+// - always returns true
+// - assumptions for this function
+//	- the current module is the one to which the common views are to be added and 
+//	  it is ready to be used
+//	- external modules are stored in the same folder as the UCM folder
+*/
+bool createCommonViews() {
+	Column c
+	Filter f
+	string theLinkModule
+	int numberColumns = 0, i
+
+	for c in current Module do {
+		numberColumns++
+	}
+		
+	insert column numberColumns
+	attribute( column numberColumns, "Deleted" )
+	width( column numberColumns, 50 )            
+	f = attribute "Deleted" == "True" 
+	set f
+	filtering on 
+	refresh current
+	save view( "Deleted View" )
+	filtering off
+
+	delete column numberColumns
+	insert column numberColumns
+	attribute( column numberColumns, "New" )
+	width( column numberColumns, 50 )            
+	f = attribute "New" == "True" 
+	set f
+	filtering on 
+	refresh current
+	save view( "New Object View" )
+	filtering off
+	delete column numberColumns
+	
+	insert column numberColumns
+	attribute( column numberColumns, "Suspect In Links" )
+	width( column numberColumns, 300 ) 
+
+	numberColumns++;
+	           
+	insert column numberColumns
+	attribute( column numberColumns, "Suspect Out Links" )
+	width( column numberColumns, 300 )
+	set( attribute "Suspect Out Links" != "No content" || attribute "Suspect In Links" != "No content" )
+	filtering on 
+	refresh current
+	save view( "Suspect View" )
+	filtering off
+
+	return true
+}

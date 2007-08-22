@@ -1,0 +1,223 @@
+/*************************************************************************************** 
+// Author Sepideh Ghanavati, April-August 2007
+// - Based on initial version by Bo Jiang
+// - provides services for initialization and exit of applications
+*/
+
+/**
+  * checks if the common views exist for the current module
+  * if the views don't exist, then create them
+  */
+bool checkCommonViewsExist(Module m) {
+  string s 
+  bool hasSuspect = false
+  
+  current = m
+  
+	for s in views(current Module) do {
+    if(s == "Suspect View")
+      hasSuspect = true
+	} 
+	
+	if(hasSuspect == false) {
+	  debug("setting up common views for " m."Name" "\n",3);
+		current = edit(m."Name" "", true)
+		create object type "String" (default "No content") attribute "ID" 
+   
+		// internal attributes
+		create object type "Text" date false history false changeBars false (default "No content") attribute "Suspect In Links" 
+		create object type "Text" date false history false changeBars false (default "No content") attribute "Suspect Out Links" 
+		create object type "Boolean" date false history false changeBars false (default "false") attribute "New" 
+		create object type "Boolean" date false history false changeBars false (default "false") attribute "Deleted" 
+
+		load view( "Standard view" )
+
+		createCommonViews()
+	}
+	return true;
+}
+
+/*************************************************************************************** 
+// Author Sepideh Ghanavati, April-August 2007
+// - saves and closes all open modules in a folder
+// - returns false if a module remains open, true if all modules are closed
+*/
+bool saveCloseAllModules( Folder theFolder ) {
+	Module currentModule
+	bool allClosed = true
+
+	// loops through all OPEN modules in a folder
+	for currentModule in theFolder do {
+		save currentModule
+		close( currentModule, true )
+	}
+	for currentModule in theFolder do {
+		allClosed = false
+		break
+	}
+	return allClosed
+}
+
+bool openOrgModules(string folderName) {
+	Module currentModule
+	bool preparationOKActors = false, preparationOKIntentionalElements = false	
+	bool preparationOKComponent = false, preparationOKResponsibility = false
+	bool preparationOKDocuments = false
+	
+	current = folder folderName
+	
+	orgActorModule = edit (fileNameOrgActors, false)
+	orgIntentionalElementModule = edit(fileNameOrgIntentionalElements, false)
+	orgComponentModule = edit(fileNameOrgComponents, false)
+	orgResponsibilityModule = edit(fileNameOrgResponsibilities, false)
+	orgDocumentsModule = edit (fileNameOrgDocuments, false)
+	
+	for currentModule in current Folder do {
+		if (currentModule."Name" "" == fileNameOrgActors)
+			preparationOKActors = checkCommonViewsExist(currentModule)
+		if (currentModule."Name" "" == fileNameOrgIntentionalElements)
+			preparationOKIntentionalElements = checkCommonViewsExist(currentModule)
+		if (currentModule."Name" "" == fileNameOrgComponents)
+			preparationOKComponent = checkCommonViewsExist(currentModule)
+		if (currentModule."Name" "" == fileNameOrgResponsibilities)
+			preparationOKResponsibility = checkCommonViewsExist(currentModule)
+		if (currentModule."Name" "" == fileNameOrgDocuments)
+			preparationOKDocuments = checkCommonViewsExist(currentModule)
+	}
+
+	Project p = current Project	
+	current = folder ("/" name p "/")
+	
+	return ( preparationOKActors && preparationOKIntentionalElements && preparationOKComponent && preparationOKResponsibility && preparationOKDocuments ) 
+}
+
+bool checkCreateOrgLinkModules(string folderName) {
+	Module currentModule
+	bool tracesOK = false, respOK = false, compliesOK = false, urnLinksOK = false, sourcesLinksOK = false
+
+	current = folder folderName
+
+	//complies link module
+	if ( !( exists module fileNameOrgComplies ) ) {
+		create( fileNameOrgComplies, "Complies", manyToMany, false )
+	}
+	orgCompliesLinkModule = edit( fileNameOrgComplies, false )
+
+	//traces link module	
+	if ( !( exists module fileNameOrgTraces ) ) {
+		create( fileNameOrgTraces, "Traces", manyToMany, false )
+	}
+	orgTracesLinkModule = edit( fileNameOrgTraces, false )
+
+	//responsibility link module
+	if ( !( exists module fileNameOrgResps ) ) {
+		create( fileNameOrgResps, "resps", manyToMany, false )
+	}
+	orgRespLinkModule = edit( fileNameOrgResps, false )
+
+	//urnlinks link module
+	if ( !( exists module fileNameOrgUrnLinks ) ) {
+		create( fileNameOrgUrnLinks, "urnlinks", manyToMany, false )
+	}
+	orgUrnLinksModule = edit( fileNameOrgUrnLinks, false )
+
+	//sources link module
+	if ( !( exists module fileNameOrgSources ) ) {
+		create( fileNameOrgSources, "urnlinks", manyToMany, false )
+	}
+	orgSourcesLinksModule = edit( fileNameOrgSources, false )
+
+	for currentModule in current Folder do {
+		if( isEdit( currentModule ) ) {
+			if( currentModule."Name" "" == fileNameOrgComplies )
+				compliesOK = true
+			if( currentModule."Name" "" == fileNameOrgTraces )
+				tracesOK = true
+			if( currentModule."Name" "" == fileNameOrgResps )
+				respOK = true
+			if( currentModule."Name" "" == fileNameOrgUrnLinks )
+				urnLinksOK = true
+			if( currentModule."Name" "" == fileNameOrgSources )
+				sourcesLinksOK = true
+		}
+	}
+	Project p = current Project
+	current = folder ("/" name p "/")
+
+	return (compliesOK && tracesOK && respOK && urnLinksOK && sourcesLinksOK)
+}
+
+bool openLegModules(string folderName) {
+	Module currentModule
+	bool actorsOK = false, intentionalElementsOK = false, clauseOK = false, defOK = false
+	
+	current = folder folderName
+	
+	legActorsModule = edit(fileNameLegActors, false)
+	legIntetionalElementModule = edit(fileNameLegIntentionalElements, false)
+	legDefModule = edit(fileNameLegDef, false)
+	legClauseModule = edit(fileNameLegClause, false)
+	
+	for currentModule in current Folder do {
+		if (currentModule."Name" "" == fileNameLegActors)
+			actorsOK =  checkCommonViewsExist(currentModule)
+		if (currentModule."Name" "" == fileNameLegIntentionalElements)
+			intentionalElementsOK =  checkCommonViewsExist(currentModule)
+		if (currentModule."Name" "" == fileNameLegClause)
+			clauseOK =  checkCommonViewsExist(currentModule)
+		if (currentModule."Name" "" == fileNameLegDef)
+			defOK = checkCommonViewsExist(currentModule)
+	}
+	Project p = current Project
+	current = folder ("/" name p "/")
+
+	return (actorsOK && intentionalElementsOK && clauseOK && defOK) 
+}
+
+bool checkCreateLegLinkModules(string folderName) {
+	Module currentModule
+	bool sourcesOK = false
+
+	current = folder folderName
+
+	//complies link module
+	if ( !( exists module fileNameLegSources ) ) {
+		create( fileNameLegSources, "Sources", manyToMany, false )
+	}
+	legSourcesLinkModule = edit( fileNameLegSources, false )
+
+	for currentModule in current Folder do {
+		if( isEdit( currentModule ) ) {
+			if( currentModule."Name" "" == fileNameLegSources )
+				sourcesOK = true
+		}
+	}
+	Project p = current Project
+	current = folder ("/" name p "/")
+
+	return (sourcesOK)
+}
+
+bool saveCloseFinal() {
+	bool finalOK1 = false, finalOK2 = false, finalOK3 = false
+
+	Project p = current Project
+	current = folder ("/" name p "/")
+
+	//close the legislation folder
+	current = folder (legFolderName "/")
+	finalOK2 = saveCloseAllModules( current() )
+	closeFolder()
+
+	//close the organization folder
+	current = folder (orgFolderName "/")
+	finalOK1 = saveCloseAllModules( current() )
+	closeFolder()
+	
+	//close the project
+	finalOK3 = saveCloseAllModules( current() )
+
+	
+	return ( finalOK1 && finalOK2 && finalOK3  )
+}
+
