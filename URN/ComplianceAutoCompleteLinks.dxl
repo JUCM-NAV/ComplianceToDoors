@@ -1,9 +1,0 @@
-// ComplianceAutoCompleteLinks.dxl
-
-/*************************************************************************************** 
-// Author Sepideh Ghanavati, July 2007
-*/
-#include "addins/Compliance/lib/ComplianceUtilities.dxl"
-pragma runLim,0
-
-completeLinks()
